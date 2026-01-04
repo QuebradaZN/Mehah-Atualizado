@@ -182,6 +182,7 @@ void Application::registerLuaFunctions()
     g_lua.bindSingletonFunction("g_configs", "load", &ConfigManager::load, &g_configs);
     g_lua.bindSingletonFunction("g_configs", "unload", &ConfigManager::unload, &g_configs);
     g_lua.bindSingletonFunction("g_configs", "create", &ConfigManager::create, &g_configs);
+    g_lua.bindSingletonFunction("g_configs", "saveSettings", &ConfigManager::saveSettings, &g_configs);
 
     // Logger
     g_lua.registerSingletonClass("g_logger");
@@ -798,6 +799,7 @@ void Application::registerLuaFunctions()
     g_lua.bindClassMemberFunction<UIWidget>("getTextOffset", &UIWidget::getTextOffset);
     g_lua.bindClassMemberFunction<UIWidget>("getFont", &UIWidget::getFont);
     g_lua.bindClassMemberFunction<UIWidget>("getTextSize", &UIWidget::getTextSize);
+    g_lua.bindClassMemberFunction<UIWidget>("getWrappedLinesCount", &UIWidget::getWrappedLinesCount);
     g_lua.bindClassMemberFunction<UIWidget>("hasShader", &UIWidget::hasShader);
     g_lua.bindClassMemberFunction<UIWidget>("disableUpdateTemporarily", &UIWidget::disableUpdateTemporarily);
     g_lua.bindClassMemberFunction<UIWidget>("getNextWidget", &UIWidget::getNextWidget);

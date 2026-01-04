@@ -93,7 +93,7 @@ void LocalPlayer::onWalking() {
         if (const auto& tile = g_map.getTile(getPosition())) {
             for (const auto& creature : tile->getWalkingCreatures()) {
                 // Cancel pre-walk movement if the local player tries to walk on an unwalkable tile.
-                if (creature.get() != this && creature->getPosition() == getPosition()) {
+                if (creature.get() != this && creature->getPosition() == getPosition() && !creature->isPassable()) {
                     cancelWalk();
                     g_map.notificateTileUpdate(getPosition(), asLocalPlayer(), Otc::OPERATION_CLEAN);
                     break;
@@ -717,4 +717,39 @@ void LocalPlayer::setStoreExpBoostTime(uint16_t value)
         return;
 
     m_storeExpBoostTime = value;
+}
+
+
+void LocalPlayer::setHarmony(const uint8_t harmony, const uint8_t maxHarmony)
+{
+    if (m_harmony == harmony && m_maxHarmony == maxHarmony)
+        return;
+
+    const uint8_t oldHarmony = m_harmony;
+    const uint8_t oldMaxHarmony = m_maxHarmony;
+    m_harmony = harmony;
+    m_maxHarmony = maxHarmony;
+
+    callLuaField("onHarmonyChange", harmony, maxHarmony, oldHarmony, oldMaxHarmony);
+}
+
+void LocalPlayer::setVirtue(const uint8_t virtue)
+{
+    if (m_virtue == virtue)
+        return;
+
+    const uint8_t oldVirtue = m_virtue;
+    m_virtue = virtue;
+
+    callLuaField("onVirtueChange", virtue, oldVirtue);
+}
+
+void LocalPlayer::setIsSerene(const bool serene)
+{
+    if (m_isSerene == serene)
+        return;
+
+    m_isSerene = serene;
+
+    callLuaField("onSereneChange", serene);
 }

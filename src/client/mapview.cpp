@@ -216,6 +216,7 @@ void MapView::drawCreatureInformation() {
     if (m_drawNames) { flags |= Otc::DrawNames; }
     if (m_drawHealthBars) { flags |= Otc::DrawBars; }
     if (m_drawManaBar) { flags |= Otc::DrawManaBar; }
+    if (m_drawHarmony) { flags |= Otc::DrawHarmony; }
 
     Position _camera = m_posInfo.camera;
     const bool alwaysTransparent = m_floorViewMode == Otc::ALWAYS_WITH_TRANSPARENCY && _camera.coveredUp(m_posInfo.camera.z - m_floorMin);
@@ -442,7 +443,12 @@ void MapView::updateRect(const Rect& rect) {
         m_posInfo.horizontalStretchFactor = rect.width() / static_cast<float>(m_posInfo.srcRect.width());
         m_posInfo.verticalStretchFactor = rect.height() / static_cast<float>(m_posInfo.srcRect.height());
 
-        const auto& mousePos = getPosition(g_window.getMousePosition() * g_window.getDisplayDensity());
+        auto mousePoint = g_window.getMousePosition();
+        if (g_app.getHUDScale() != DEFAULT_DISPLAY_DENSITY) {
+            mousePoint.scale(g_app.getHUDScale());
+        }
+
+        const auto& mousePos = getPosition(mousePoint * g_window.getDisplayDensity());
         if (mousePos != m_mousePosition)
             onMouseMove(m_mousePosition = mousePos, true);
     }

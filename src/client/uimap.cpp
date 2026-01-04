@@ -61,7 +61,7 @@ void UIMap::draw(const DrawPoolType drawPane) {
             m_mapView->m_lightView->clear();
             m_mapView->drawLights();
             m_mapView->m_lightView->draw(m_mapView->m_posInfo.rect, m_mapView->m_posInfo.srcRect);
-        }, true);
+        });
     } else if (drawPane == DrawPoolType::CREATURE_INFORMATION) {
         g_drawPool.preDraw(drawPane, [this] {
             m_mapView->drawCreatureInformation();
@@ -112,6 +112,8 @@ void UIMap::setDrawLights(const bool enable) { m_mapView->setDrawLights(enable);
 void UIMap::setLimitVisibleDimension(const bool enable) { m_mapView->setLimitVisibleDimension(enable); updateVisibleDimension(); }
 
 void UIMap::setDrawManaBar(const bool enable) { m_mapView->setDrawManaBar(enable); }
+
+void UIMap::setDrawHarmony(const bool enable) { m_mapView->setDrawHarmony(enable); }
 
 void UIMap::setShader(std::string_view name, float fadein, float fadeout) { m_mapView->setShader(name, fadein, fadeout); }
 

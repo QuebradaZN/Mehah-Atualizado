@@ -23,6 +23,7 @@
 #include "uiitem.h"
 
 #include "framework/graphics/drawpoolmanager.h"
+#include "framework/graphics/fontmanager.h"
 #include "framework/otml/otmlnode.h"
 #include "gameconfig.h"
 #include "item.h"
@@ -55,11 +56,23 @@ void UIItem::drawSelf(const DrawPoolType drawPane)
         m_item->draw(Point(exactSize - g_gameConfig.getSpriteSize()) + m_item->getDisplacement());
         g_drawPool.releaseFrameBuffer(getPaddingRect());
 
-        if (m_font && (m_alwaysShowCount && (m_item->isStackable() || m_item->isChargeable())) && m_item->getCountOrSubType() > 1) {
+        const uint32_t displayCount = m_displayCount > 0 ? m_displayCount : static_cast<uint32_t>(m_item->getCountOrSubType());
+        if (m_font && ((m_alwaysShowCount && displayCount > 0) ||
+            ((!m_alwaysShowCount) && (m_item->isStackable() || m_item->isChargeable()) && displayCount > 1))) {
             static constexpr Color STACK_COLOR(231, 231, 231);
-            const auto& count = m_item->getCountOrSubType();
-            const auto& countText = count < 1000 ? std::to_string(count) : fmt::format("{}k", count / 1000.f);
-            m_font->drawText(countText, Rect(m_rect.topLeft(), m_rect.bottomRight() - Point(3, 0)), STACK_COLOR, Fw::AlignBottomRight);
+            std::string countText;
+            BitmapFontPtr fontToUse = m_font;
+
+            if (displayCount < 1000) {
+                countText = std::to_string(displayCount);
+            } else if (displayCount < 10000) {
+                countText = std::to_string(displayCount);
+            } else {
+                countText = fmt::format("{}k", displayCount / 1000);
+                if (const auto& smallFont = g_fonts.getFont("verdana-11px-rounded-lowspace")) { fontToUse = smallFont; }
+            }
+
+            fontToUse->drawText(countText, Rect(m_rect.topLeft(), m_rect.bottomRight() - Point(3, 0)), STACK_COLOR, Fw::AlignBottomRight);
         }
 
 #ifdef FRAMEWORK_EDITOR
@@ -90,9 +103,10 @@ void UIItem::setItemId(const int id)
     callLuaField("onItemChange");
 }
 
-void UIItem::setItemCount(const int count)
+void UIItem::setItemCount(const uint32_t count)
 {
-    if (m_item) m_item->setCount(count);
+    m_displayCount = count;
+    if (m_item) m_item->setCount(static_cast<int>(std::min(count, static_cast<uint32_t>(UINT16_MAX))));
 
     callLuaField("onItemChange");
 }
@@ -134,7 +148,7 @@ void UIItem::onStyleApply(const std::string_view styleName, const OTMLNodePtr& s
 }
 
 int UIItem::getItemId() { return m_item ? m_item->getId() : 0; }
-int UIItem::getItemCount() { return m_item ? m_item->getCount() : 0; }
+uint32_t UIItem::getItemCount() { return m_displayCount > 0 ? m_displayCount : (m_item ? m_item->getCount() : 0); }
 int UIItem::getItemSubType() { return m_item ? m_item->getSubType() : 0; }
 int UIItem::getItemCountOrSubType() { return m_item ? m_item->getCountOrSubType() : 0; }
 

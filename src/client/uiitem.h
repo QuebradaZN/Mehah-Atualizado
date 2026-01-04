@@ -32,7 +32,7 @@ public:
     void drawSelf(DrawPoolType drawPane) override;
 
     void setItemId(int id);
-    void setItemCount(int count);
+    void setItemCount(uint32_t count);
     void setItemSubType(int subType);
     void setItemVisible(const bool visible) { m_itemVisible = visible; }
     void setItem(const ItemPtr& item);
@@ -41,9 +41,10 @@ public:
     void clearItem() { setItemId(0); }
 
     int getItemId();
-    int getItemCount();
+    uint32_t getItemCount();
     int getItemSubType();
     int getItemCountOrSubType();
+    uint32_t getDisplayCount() const { return m_displayCount; }
     ItemPtr getItem() { return m_item; }
     bool isVirtual() { return m_virtual; }
     bool isItemVisible() { return m_itemVisible; }
@@ -57,6 +58,7 @@ protected:
     std::string m_shaderName;
     ItemPtr m_item;
     uint32_t m_itemId{ 0 };
+    uint32_t m_displayCount{ 0 };
     bool m_virtual{ false };
     bool m_showId{ false };
     bool m_itemVisible{ true };

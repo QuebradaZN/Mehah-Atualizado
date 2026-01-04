@@ -440,9 +440,9 @@ void Game::processOpenOutfitWindow(const Outfit& currentOutfit, const std::vecto
     g_lua.callGlobalField("g_game", "onOpenOutfitWindow", virtualOutfitCreature, outfitList, virtualMountCreature, mountList, familiarList, wingsList, aurasList, effectList, shaderList);
 }
 
-void Game::processOpenNpcTrade(const std::vector<std::tuple<ItemPtr, std::string, uint32_t, uint32_t, uint32_t>>& items)
+void Game::processOpenNpcTrade(const std::vector<std::tuple<ItemPtr, std::string, uint32_t, uint32_t, uint32_t>>& items, uint16_t currency, std::string currencyName)
 {
-    g_lua.callGlobalField("g_game", "onOpenNpcTrade", items);
+    g_lua.callGlobalField("g_game", "onOpenNpcTrade", items, currency, currencyName);
 }
 
 void Game::processPlayerGoods(const uint64_t money, const std::vector<std::tuple<ItemPtr, uint16_t>>& goods)
@@ -1582,6 +1582,51 @@ void Game::sendRequestUsefulThings(const uint8_t serviceType)
     m_protocolGame->sendRequestUsefulThings(serviceType);
 }
 
+void Game::sendOpenDestinyWheel(const uint32_t playerId)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendOpenDestinyWheel(playerId);
+}
+
+void Game::sendApplyWheelPoints(const std::vector<uint16_t>& pointsInvested, uint32_t greenGemId, uint32_t redGemId, uint32_t blueGemId, uint32_t purpleGemId)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendApplyWheelPoints(pointsInvested, greenGemId, redGemId, blueGemId, purpleGemId);
+}
+
+void Game::sendGemAtelierAction(uint8_t action, uint8_t param1, uint16_t param2, bool param3)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendGemAtelierAction(action, param1, param2, param3);
+}
+
+void Game::sendWeaponProficiencyAction(const uint8_t proficiencyType, const uint16_t itemId)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendWeaponProficiencyAction(proficiencyType, itemId);
+}
+
+void Game::sendWeaponProficiencyApply(uint16_t itemId, const std::map<uint8_t, uint8_t>& perks)
+{
+    if (!canPerformGameAction())
+        return;
+
+    std::vector<std::pair<uint8_t, uint8_t>> perkVector;
+    for (const auto& perk : perks) {
+        perkVector.emplace_back(perk.first, perk.second);
+    }
+
+    m_protocolGame->sendWeaponProficiencyApply(itemId, perkVector);
+}
+
 void Game::sendRequestStoreOfferById(const uint32_t offerId, const uint8_t sortOrder, const uint8_t serviceType)
 {
     if (!canPerformGameAction())
@@ -1758,17 +1803,19 @@ Otc::OperatingSystem_t Game::getOs()
 
 void Game::leaveMarket()
 {
+    if (!canPerformGameAction())
+        return;
     m_protocolGame->sendMarketLeave();
 
     g_lua.callGlobalField("g_game", "onMarketLeave");
 }
 
-void Game::browseMarket(const uint8_t browseId, const uint8_t browseType)
+void Game::browseMarket(const uint8_t browseId, const uint16_t browseType, const uint8_t tier)
 {
-    if (!canPerformGameAction())
+    if (!canPerformGameAction()) {
         return;
-
-    m_protocolGame->sendMarketBrowse(browseId, browseType);
+    }
+    m_protocolGame->sendMarketBrowse(browseId, browseType, tier);
 }
 
 void Game::createMarketOffer(const uint8_t type, const uint16_t itemId, const uint8_t itemTier, const uint16_t amount, const uint64_t price, const uint8_t anonymous)
@@ -1803,6 +1850,37 @@ void Game::preyAction(const uint8_t slot, const uint8_t actionType, const uint16
     m_protocolGame->sendPreyAction(slot, actionType, index);
 }
 
+void Game::taskHuntingAction(const uint8_t slot, const uint8_t action, const bool upgrade, const uint16_t raceId)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendTaskHuntingAction(slot, action, upgrade, raceId);
+}
+
+void Game::taskHuntingRequest()
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendTaskHuntingRequest();
+}
+
+void Game::onTaskHuntingFreeRerolls(uint8_t slot, uint16_t timeLeft)
+{
+    g_lua.callGlobalField("g_game", "onTaskHuntingFreeRerolls", slot, timeLeft);
+}
+
+void Game::onTaskHuntingTimeLeft(uint8_t slot, uint16_t timeLeft)
+{
+    g_lua.callGlobalField("g_game", "onTaskHuntingTimeLeft", slot, timeLeft);
+}
+
+void Game::onTaskHuntingRerollPrice(uint32_t price, uint8_t wildcard, uint8_t directly)
+{
+    g_lua.callGlobalField("g_game", "onTaskHuntingRerollPrice", price, wildcard, directly);
+}
+
 void Game::preyRequest()
 {
     if (!canPerformGameAction())
@@ -1835,6 +1913,22 @@ void Game::closeImbuingWindow()
     m_protocolGame->sendCloseImbuingWindow();
 }
 
+void Game::selectImbuementItem(const uint16_t itemId, const Position& pos, const uint8_t stackpos)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendImbuementWindowAction(1, itemId, pos, stackpos);
+}
+
+void Game::selectImbuementScroll()
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendImbuementWindowAction(2);
+}
+
 void Game::imbuementDurations(const bool isOpen)
 {
     if (!canPerformGameAction())
@@ -1849,6 +1943,14 @@ void Game::stashWithdraw(const uint16_t itemId, const uint32_t count, const uint
         return;
 
     m_protocolGame->sendStashWithdraw(itemId, count, stackpos);
+}
+
+void Game::stashStowItem(const Position& position, const uint16_t itemId, const uint32_t count, const uint8_t stackpos, const uint8_t action)
+{
+    if (!canPerformGameAction())
+        return;
+
+    m_protocolGame->sendStashStow(position, itemId, count, stackpos, action);
 }
 
 void Game::requestHighscore(const uint8_t action, const uint8_t category, const uint32_t vocation, const std::string_view world, const uint8_t worldType, const uint8_t battlEye, const uint16_t page, const uint8_t totalPages)
@@ -1902,6 +2004,13 @@ void Game::openContainerQuickLoot(const uint8_t action, const uint8_t category, 
     m_protocolGame->openContainerQuickLoot(action, category, pos, itemId, stackpos, useMainAsFallback);
 }
 
+void Game::requestRewardChestCollect(const Position& pos, const uint16_t itemId, const uint8_t stackpos)
+{
+    if (!canPerformGameAction())
+        return;
+    m_protocolGame->requestRewardChestCollect(pos, itemId, stackpos);
+}
+
 void Game::sendGmTeleport(const Position& pos)
 {
     if (!canPerformGameAction())
@@ -1934,12 +2043,12 @@ void Game::requestBestiary()
     m_protocolGame->sendRequestBestiary();
 }
 
-void Game::requestBestiaryOverview(const std::string_view catName)
+void Game::requestBestiaryOverview(const std::string_view catName, bool search, std::vector<uint16_t> raceIds)
 {
     if (!canPerformGameAction())
         return;
 
-    m_protocolGame->sendRequestBestiaryOverview(catName);
+    m_protocolGame->sendRequestBestiaryOverview(catName, search, raceIds);
 }
 
 void Game::requestBestiarySearch(const uint16_t raceId)
@@ -2051,4 +2160,39 @@ void Game::processCyclopediaCharacterDefenceStats(const CyclopediaCharacterDefen
 void Game::processCyclopediaCharacterMiscStats(const CyclopediaCharacterMiscStats& data)
 {
     g_lua.callGlobalField("g_game", "onCyclopediaCharacterMiscStats", data);
+}
+
+void Game::processOpenExaltationForge(const ForgeOpenData& data)
+{
+    g_lua.callGlobalField("g_game", "onOpenExaltationForge", data);
+}
+
+void Game::sendForgeAction(Otc::ForgeActions_t forgeAction, bool convergence, uint16_t itemid1, uint8_t tier, uint16_t itemid2, bool usedCore, bool reduceTierLoss)
+{
+    m_protocolGame->sendForgeAction(forgeAction, convergence, itemid1, tier, itemid2, usedCore, reduceTierLoss);
+}
+
+void Game::onForgeResult(const ForgeResult& data)
+{
+    g_lua.callGlobalField("g_game", "onResultExaltationForge", data);
+}
+
+void Game::parseItemClasses(const ForgeData& data)
+{
+    g_lua.callGlobalField("g_game", "onItemClasses", data);
+}
+
+void Game::sendForgeHistory(uint32_t pageId)
+{
+    m_protocolGame->sendForgeHistory(pageId);
+}
+
+void Game::onForgeHistory(uint32_t currentPage, uint32_t lastPage, const std::vector<ForgeHistory>& data)
+{
+    g_lua.callGlobalField("g_game", "onForgeHistory", currentPage, lastPage, data);
+}
+
+void Game::sendResourceBalance()
+{
+    m_protocolGame->sendResourceBalance();
 }

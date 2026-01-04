@@ -1,14 +1,9 @@
--- Configuração de spells permitidas por classe (id+classe)
--- Exemplo: [80] = { [4] = true, [8] = true }  -- spell id 80 permitido para classes 4 e 8
-AllowedSpellsByClass = {
-  [80] = { [4] = true, [8] = true, [11] = true },
-  -- Adicione outros ids e classes conforme necessário
-}
-
 SpelllistSettings = {
   ['Default'] = {
     iconFile = '/images/game/spells/spell-icons-32x32',
     iconSize = { width = 32, height = 32 },
+    iconSizeCooldown = { width = 20, height = 20 },
+    iconsForGameCooldown = '/images/game/spells/spell-icons-20x20',
     spellListWidth = 210,
     spellWindowWidth = 550,
       spellOrder = {'Animate Dead', 'Annihilation', "Apprentice's Strike", 'Arrow Call', 'Avalanche', 'Berserk',
@@ -302,7 +297,6 @@ SpellInfo = {
     ["Rage of the Skies"] = { id = 119, name = "Rage of the Skies", words = "exevo gran mas vis", type = "Instant", level = 55, mana = 600, soul = 0, icon = "rageoftheskies", group = { [1] = 4000, [7] = 40000 }, needTarget = false, parameter = false, range = 0, exhaustion = 40000, premium = true, vocations = { 1, 5 }, area = SpellAreas.AREA_CIRCLE5X5 },
     ["Recovery"] = { id = 159, name = "Recovery", words = "utura", type = "Instant", level = 50, mana = 75, soul = 0, icon = "recovery", group = { [2] = 1000 }, needTarget = false, parameter = false, range = 0, exhaustion = 60000, premium = false, vocations = { 3, 4, 7, 8 } },
     ["Salvation"] = { id = 36, name = "Salvation", words = "exura gran san", type = "Instant", level = 60, mana = 210, soul = 0, icon = "salvation", group = { [2] = 1000 }, needTarget = false, parameter = false, range = 0, exhaustion = 1000, premium = true, vocations = { 3, 7 } },
-    -- Certifique-se de que o ícone está correto e não igual ao da 'utito mas sio'.
     ["Sharpshooter"] = { id = 135, name = "Sharpshooter", words = "utito tempo san", type = "Instant", level = 60, mana = 450, soul = 0, icon = "sharpshooter", group = { [3] = 2000, [7] = 10000 }, needTarget = false, parameter = false, range = 0, exhaustion = 10000, premium = false, vocations = { 3, 7 } },
     ["Strong Energy Strike"] = { id = 151, name = "Strong Energy Strike", words = "exori gran vis", type = "Instant", level = 80, mana = 60, soul = 0, icon = "strongenergystrike", group = { [1] = 2000, [4] = 8000 }, needTarget = false, parameter = false, range = 3, exhaustion = 8000, premium = true, vocations = { 1, 5 } },
     ["Strong Ethereal Spear"] = { id = 57, name = "Strong Ethereal Spear", words = "exori gran con", type = "Instant", level = 90, mana = 55, soul = 0, icon = "strongetherealspear", group = { [1] = 2000 }, needTarget = true, parameter = false, range = 7, exhaustion = 8000, premium = true, vocations = { 3, 7 } },
@@ -740,23 +734,14 @@ function Spells.getSpellByWords(words)
 end
 
 function Spells.getSpellByIcon(iconId)
-    -- Primeiro tenta pelo id
-    for profile, data in pairs(SpellInfo) do
+  for profile, data in pairs(SpellInfo) do
       for k, spell in pairs(data) do
-        if spell.id == iconId then
-          return spell, profile, k
-        end
+          if spell.id == iconId then
+              return spell, profile, k
+          end
       end
-    end
-    -- Se não achou, tenta pelo nome (caso iconId seja string)
-    for profile, data in pairs(SpellInfo) do
-      for k, spell in pairs(data) do
-        if k == iconId or spell.name == iconId then
-          return spell, profile, k
-        end
-      end
-    end
-    return nil
+  end
+  return nil
 end
 
 function Spells.getSpellIconIds()
@@ -1006,6 +991,20 @@ function Spells.getImageClip(id, profile)
   end
 
   local w, h = settings.iconSize.width, settings.iconSize.height
+  local x = (id or 0) * w
+  return { x = x, y = 0, width = w, height = h }
+end
+
+function Spells.getImageClipCooldown(id, profile)
+  profile = profile or 'Default'
+  local settings = SpelllistSettings[profile]
+  local w, h = 20, 22
+  if settings and settings.iconSizeCooldown then
+    w, h = settings.iconSizeCooldown.width, settings.iconSizeCooldown.height
+  else
+    print('Spells.getImageClipCooldown: missing cooldown icon settings for profile =', profile)
+  end
+
   local x = (id or 0) * w
   return { x = x, y = 0, width = w, height = h }
 end

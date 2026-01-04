@@ -77,13 +77,17 @@ namespace Proto
         GameServerCreatureShader = 54,
         GameServerMapShader = 55,
         GameServerCreatureTyping = 56,
+        GameServerAttachedPaperdoll = 60,
+        GameServerDetachPaperdoll = 61,
         GameServerFeatures = 67,
         GameServerFloorDescription = 75,
 
         // original tibia ONLY
-        GameServerWeaponProficiencyExperience = 92,
+        GameServerProficiencyExperience = 92,
+        GameServerWeaponProficiencyExperience = 92, // alias
         GameServerImbuementDurations = 93,
         GameServerPassiveCooldown = 94,
+        GameServerDestinyWheel = 95,
         GameServerBosstiaryData = 97,
         GameServerBosstiarySlots = 98,
         GameServerSendClientCheck = 99,
@@ -175,7 +179,8 @@ namespace Proto
         GameServerLootContainers = 192,
         GameServerVirtue = 193,
         GameServerCyclopediaHouseAuctionMessage = 195,
-        GameServerWeaponProficiencyInfo = 196,
+        GameServerProficiency = 196,
+        GameServerWeaponProficiencyInfo = 196, // alias
         GameServerCyclopediaHousesInfo = 198,
         GameServerCyclopediaHouseList = 199,
         GameServerChooseOutfit = 200,
@@ -227,7 +232,8 @@ namespace Proto
         GameServerStore = 251,
         GameServerStoreOffers = 252,
         GameServerStoreTransactionHistory = 253,
-        GameServerStoreCompletePurchase = 254
+        GameServerStoreCompletePurchase = 254,
+        ClientRequestRewardChestCollect = 255,
     };
 
     enum ClientOpcodes : uint8_t
@@ -252,6 +258,9 @@ namespace Proto
         // NOTE: add any custom opcodes in this range
         // 51 - 99
 
+        ClientOpenDestinyWheel = 97,
+        ClientApplyWheelPoints = 98,
+        ClientGemAtelierAction = 99,  // 0x63
         // original tibia ONLY
         ClientImbuementDurations = 96,
         ClientAutoWalk = 100,
@@ -320,6 +329,7 @@ namespace Proto
         ClientBosstiaryRequestSlotInfo = 175,
         ClientBosstiaryRequestSlotAction = 176,
         ClientRequestHighscore = 177,
+        ClientWeaponProficiencyAction = 179,
         ClientCancelAttackAndFollow = 190,
         ClientForgeEnter = 191,
         ClientForgeBrowseHistory = 192,
@@ -353,6 +363,8 @@ namespace Proto
         ClientDebugReport = 232,
         ClientPreyAction = 235,
         ClientPreyRequest = 237,
+        ClientTaskHuntingAction = 186,  // 0xBA - Task Hunting action
+        ClientTaskHuntingRequest = 187, // 0xBB - Task Hunting request
         ClientTransferCoins = 239,
         ClientRequestQuestLog = 240,
         ClientRequestQuestLine = 241,
@@ -390,6 +402,14 @@ namespace Proto
         MonsterEndId = 0x80000000,
         NpcStartId = 0x80000000,
         NpcEndId = 0xffffffff
+    };
+
+    enum WeaponProficiencyType : uint8_t
+    {
+        WEAPON_PROFICIENCY_ITEM_INFO = 0,
+        WEAPON_PROFICIENCY_LIST_INFO = 1,
+        WEAPON_PROFICIENCY_RESET_PERKS = 2,
+        WEAPON_PROFICIENCY_APPLY_PERKS = 3
     };
 
     void buildMessageModesMap(int version);

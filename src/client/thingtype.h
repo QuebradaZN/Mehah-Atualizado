@@ -120,6 +120,7 @@ public:
     bool isTranslucent() { return (m_flags & ThingFlagAttrTranslucent); }
     bool hasDisplacement() { return (m_flags & ThingFlagAttrDisplacement); }
     bool hasElevation() { return (m_flags & ThingFlagAttrElevation); }
+    bool hasFloorChange() const { return (m_flags & ThingFlagAttrFloorChange); }
     bool isLyingCorpse() { return (m_flags & ThingFlagAttrLyingCorpse); }
     bool isAnimateAlways() { return (m_flags & ThingFlagAttrAnimateAlways); }
     bool hasMiniMapColor() { return (m_flags & ThingFlagAttrMinimapColor); }
@@ -160,6 +161,7 @@ public:
     PLAYER_ACTION getDefaultAction() { return m_defaultAction; }
 
     uint16_t getClassification() { return m_upgradeClassification; }
+    uint16_t getProficiencyId();
     const auto& getSprites() { return m_spritesIndex; }
 
     // additional
@@ -222,6 +224,7 @@ private:
     uint16_t m_groundSpeed{ 0 };
     uint16_t m_maxTextLength{ 0 };
     uint16_t m_upgradeClassification{ 0 };
+    uint16_t m_proficiencyId{ 0 };
 
     uint64_t m_flags{ 0 };
 
@@ -237,7 +240,7 @@ private:
     std::vector<uint32_t> m_spritesIndex;
     std::vector<TextureData> m_textureData;
 
-    std::atomic_bool m_loading;
+    std::atomic_bool m_loading{ false };
 
     Timer m_lastTimeUsage;
 

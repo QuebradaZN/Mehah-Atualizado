@@ -61,10 +61,12 @@ void DrawPool::add(const Color& color, const TexturePtr& texture, DrawMethod&& m
 
         if (m_atlas) {
             if (const auto region = texture->getAtlasRegion(m_atlas->getType())) {
-                textureAtlas = region->atlas;
+                if (region->isEnabled()) {
+                    textureAtlas = region->atlas;
 
-                if (method.src.isValid())
-                    method.src.translate(region->x, region->y);
+                    if (method.src.isValid())
+                        method.src.translate(region->x, region->y);
+                }
             }
         }
     }
@@ -250,26 +252,23 @@ void DrawPool::resetState()
 
 bool DrawPool::canRepaint()
 {
+    if (!m_enabled || shouldRepaint())
+        return false;
+
     uint16_t refreshDelay = m_refreshDelay;
     if (m_shaderRefreshDelay > 0 && (m_refreshDelay == 0 || m_shaderRefreshDelay < m_refreshDelay))
         refreshDelay = m_shaderRefreshDelay;
 
-    const bool canRepaint = m_hashCtrl.wasModified() || (refreshDelay > 0 && m_refreshTimer.ticksElapsed() >= refreshDelay);
-
-    return canRepaint;
+    return refreshDelay == 0 || m_refreshTimer.ticksElapsed() >= refreshDelay;
 }
 
 void DrawPool::release() {
-    SpinLock::Guard guard(m_threadLock);
-
-    if (!canRepaint()) {
+    if (hasFrameBuffer() && !m_hashCtrl.wasModified()) {
         for (auto& objs : m_objects)
             objs.clear();
         m_objectsFlushed.clear();
         return;
     }
-
-    m_shouldRepaint.store(true, std::memory_order_release);
 
     m_refreshTimer.restart();
 
@@ -312,6 +311,8 @@ void DrawPool::release() {
             objs.clear();
         }
     }
+
+    m_shouldRepaint.store(true, std::memory_order_release);
 }
 
 void DrawPool::flush()
@@ -430,10 +431,13 @@ void DrawPool::removeFramebuffer() {
     m_framebuffer = nullptr;
 }
 
-void DrawPool::addAction(const std::function<void()>& action)
+void DrawPool::addAction(const std::function<void()>& action, size_t hash)
 {
     const uint8_t order = m_type == DrawPoolType::MAP ? THIRD : FIRST;
     m_objects[order].emplace_back(action);
+    if (hasFrameBuffer() && hash > 0 && !m_hashCtrl.isLast(hash)) {
+        m_hashCtrl.put(hash);
+    }
 }
 
 void DrawPool::bindFrameBuffer(const Size& size, const Color& color)

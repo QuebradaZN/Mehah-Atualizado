@@ -44,8 +44,9 @@ namespace Otc
         DrawBars = 1 << 2,
         DrawNames = 1 << 3,
         DrawManaBar = 1 << 4,
+        DrawHarmony = 1 << 5,
         DrawThingsAndLights = DrawThings | DrawLights,
-        DrawCreatureInfo = DrawBars | DrawNames | DrawManaBar,
+        DrawCreatureInfo = DrawBars | DrawNames | DrawManaBar | DrawHarmony,
     };
 
     enum DatOpts : uint8_t
@@ -536,6 +537,7 @@ namespace Otc
         GameAnthem = 95,
         GameVipGroups = 96,
         GameBosstiary = 97,
+        GameDoublePlayerGoodsMoney = 98,
 
         //  others
         GameLoadSprInsteadProtobuf = 100,
@@ -566,6 +568,7 @@ namespace Otc
         GameMapCache = 125,
         GameForgeSkillStats = 126,
         GameCharacterSkillStats = 127,
+        GameCreaturePaperdoll = 128,
         LastGameFeature
     };
 
@@ -690,6 +693,8 @@ namespace Otc
         RESOURCE_LESSER_GEMS = 81,
         RESOURCE_REGULAR_GEMS = 82,
         RESOURCE_GREATER_GEMS = 83,
+        RESOURCE_LESSER_FRAGMENT = 84,
+        RESOURCE_GREATER_FRAGMENT = 85,
         RESOURCE_WHEEL_OF_DESTINY = 86,
         RESOURE_COIN_NORMAL = 90,
         RESOURE_COIN_TRANSFERRABLE = 91,
@@ -730,13 +735,13 @@ namespace Otc
         ITEM_DESC_REFLECTION = 20,
         ITEM_DESC_PERFECT = 21,
         ITEM_DESC_UPGRADECLASS = 22,
+        ITEM_DESC_CURRENTTIER = 23,
         ITEM_DESC_ELEMENTALBOND = 24,
         ITEM_DESC_MANTRA = 25,
         ITEM_DESC_IMBUEMENTEFFECT = 26,
-        ITEM_DESC_CURRENTTIER = 27,
 
         ITEM_DESC_FIRST = ITEM_DESC_ARMOR,
-        ITEM_DESC_LAST = ITEM_DESC_CURRENTTIER,
+        ITEM_DESC_LAST = ITEM_DESC_IMBUEMENTEFFECT,
     };
 
     enum MarketAction : uint8_t
@@ -817,7 +822,8 @@ namespace Otc
         INSPECT_NORMALOBJECT = 0,
         INSPECT_NPCTRADE = 1,
         INSPECT_PLAYERTRADE = 2,
-        INSPECT_CYCLOPEDIA = 3
+        INSPECT_CYCLOPEDIA = 3,
+        INSPECT_PROFICIENCY = 4,
     };
 
     enum GameStoreInfoType_t : uint8_t
@@ -853,6 +859,15 @@ namespace Otc
         OPEN_USEFUL_THINGS = 3,
         OPEN_OFFER = 4,
         OPEN_SEARCH = 5,
+    };
+
+    enum ForgeActions_t : uint8_t
+    {
+        FUSION = 0,
+        TRANSFER = 1,
+        DUSTTOSLIVERS = 2,
+        SLIVERSTOCORES = 3,
+        INCREASELIMIT = 4
     };
 
     enum WeaponProficiency_t : uint8_t
@@ -1050,6 +1065,7 @@ enum ThingFlagAttr :uint64_t
     ThingFlagAttrDecoKit = static_cast<uint64_t>(1) << 45,
     ThingFlagAttrNPC = static_cast<uint64_t>(1) << 46,
     ThingFlagAttrAmmo = static_cast<uint64_t>(1) << 47,
+    ThingFlagAttrFloorChange = static_cast<uint64_t>(1) << 48,
 };
 
 enum STACK_PRIORITY : uint8_t
